@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <unordered_set>
+#include <unordered_map>
 
 struct Student {
     int UFID;
@@ -15,12 +16,15 @@ struct Student {
     bool operator<(const Student &other) const {
         return UFID < other.UFID;
     }
+    bool operator<(const int searchUFID) const {
+        return UFID < searchUFID;
+    }
 };
 class CampusCompass {
 private:
     std::vector<std::vector<int>> connections;
     std::map<std::string, int> classCodes;
-    std::unordered_set<Student*> students;
+    std::unordered_map<int, Student> students;
 
     void insertStudent(std::string& name, int& UFID, int& residenceLoc, std::set<std::string>& classes);
     void removeStudent(int UFID);
