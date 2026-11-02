@@ -26,11 +26,11 @@ private:
     std::map<std::string, int> classCodes;
     std::unordered_map<int, Student> students;
 
-    void insertStudent(std::string& name, int& UFID, int& residenceLoc, std::set<std::string>& classes);
-    void removeStudent(int UFID);
-    void dropClass(int& UFID, std::string& classCode);
-    void replaceClass(int& UFID, std::string& classCode1, std::string& classCode2);
-    void removeClass(std::string& classCode);
+    bool insertStudent(std::string& name, int& UFID, int& residenceLoc, std::set<std::string>& classes);
+    bool removeStudent(int UFID);
+    bool dropClass(int& UFID, std::string& classCode);
+    bool replaceClass(int& UFID, std::string& classCode1, std::string& classCode2);
+    int removeClass(std::string& classCode);
     void toggleEdges(std::vector<std::pair<int,int>>& edges);
     std::string checkEdgeStatus(std::pair<int,int>& edge);
     bool isConnected(std::pair<int,int>& locations);
