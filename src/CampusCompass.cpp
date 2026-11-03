@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
+#include <queue>
 
 CampusCompass::CampusCompass() {
     connections.clear();
@@ -127,7 +127,7 @@ void CampusCompass::toggleEdges(std::vector<std::pair<int, int> > &edges) {
     for (auto edge: edges) {
         for(auto & connection : connections) {
             if (edge.first == connection[0] && edge.second == connection[1]) {
-                connection[4] = 1 - connection[4];
+                connection[3] = 1 - connection[3];
                 break;
             }
         }
@@ -137,11 +137,52 @@ void CampusCompass::toggleEdges(std::vector<std::pair<int, int> > &edges) {
 std::string CampusCompass::checkEdgeStatus(std::pair<int, int> &edge) {
     for(auto & connection : connections) {
         if (edge.first == connection[0] && edge.second == connection[1]) {
-            if (connection[4] == 0) {
+            if (connection[3] == 0) {
                 return "closed";
             }
             return "open";
         }
     }
     return "DNE";
+}
+
+std::vector<std::vector<int>> CampusCompass::createAdjacencyMatrix() {
+    std::vector<std::vector<int>> adjacencyMatrix(connections.size(), std::vector<int>(connections.size(), 0));
+    for (const auto& connection : connections) {
+        if (connection[3] == 1) {
+            adjacencyMatrix[connection[0]][connection[1]] = connection[2];
+            adjacencyMatrix[connection[1]][connection[0]] = connection[2];
+        }
+    }
+    return adjacencyMatrix;
+}
+
+bool CampusCompass::isConnected(std::pair<int, int> &edge) {
+    int source = edge.first;
+    int destination = edge.second;
+    std::vector<std::vector<int>> adj= createAdjacencyMatrix();
+    int V = adj.size();
+    std::vector<bool> visited(V, false);
+    std::queue<int> vertices;
+    vertices.push(source);
+    visited[source] = true;
+
+    while (!vertices.empty()) {
+        int curr = vertices.front();
+        if (curr == destination) {
+            return true;
+        }
+        vertices.pop();
+        for (int i = 0; i < V; i++) {
+            if (!visited[i] && adj[curr][i] >= 1) {
+                visited[i] = true;
+                vertices.push(i);
+                if (i == destination) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+
 }

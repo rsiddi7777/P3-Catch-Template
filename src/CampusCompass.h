@@ -36,6 +36,7 @@ private:
     bool isConnected(std::pair<int,int>& locations);
     std::string printShortestEdges(int& UFID);
     std::string printStudentZone(int& UFID);
+    std::vector<std::vector<int>> createAdjacencyMatrix();
 public:
     // Think about what helper functions you will need in the algorithm
     CampusCompass(); // constructor
