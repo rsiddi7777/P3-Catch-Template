@@ -1,4 +1,6 @@
 #include "CampusCompass.h"
+
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -8,6 +10,7 @@ CampusCompass::CampusCompass() {
     connections.clear();
     classCodes.clear();
     students.clear();
+    vertexCount = 0;
 }
 
 bool CampusCompass::ParseCSV(const std::string &edges_filepath, const std::string &classes_filepath) {
@@ -25,6 +28,12 @@ bool CampusCompass::ParseCSV(const std::string &edges_filepath, const std::strin
         }
 
         //std::cout << row[0] <<", " << row[1] << ", " << row.back() << std::endl;
+        if (std::stoi(row[0])+1 >vertexCount) {
+            vertexCount = std::stoi(row[0])+1;
+        }
+        if (std::stoi(row[1])+1 >vertexCount) {
+            vertexCount = std::stoi(row[1])+1;
+        }
         std::vector edge = {std::stoi(row[0]), std::stoi(row[1]), std::stoi(row.back()), 1};
         connections.push_back(edge);
     }
@@ -147,7 +156,7 @@ std::string CampusCompass::checkEdgeStatus(std::pair<int, int> &edge) {
 }
 
 std::vector<std::vector<int>> CampusCompass::createAdjacencyMatrix() {
-    std::vector<std::vector<int>> adjacencyMatrix(connections.size(), std::vector<int>(connections.size(), 0));
+    std::vector<std::vector<int>> adjacencyMatrix(vertexCount, std::vector<int>(vertexCount, 0));
     for (const auto& connection : connections) {
         if (connection[3] == 1) {
             adjacencyMatrix[connection[0]][connection[1]] = connection[2];
@@ -161,7 +170,7 @@ bool CampusCompass::isConnected(std::pair<int, int> &edge) {
     int source = edge.first;
     int destination = edge.second;
     std::vector<std::vector<int>> adj= createAdjacencyMatrix();
-    int V = adj.size();
+    int V = vertexCount;
     std::vector<bool> visited(V, false);
     std::queue<int> vertices;
     vertices.push(source);
@@ -184,5 +193,174 @@ bool CampusCompass::isConnected(std::pair<int, int> &edge) {
         }
     }
     return false;
+}
 
+std::string CampusCompass::printShortestEdges(int &UFID) {
+    const Student& s = students.at(UFID);
+    std::string output = "Time For Shortest Edges: " + s.name + "\n";
+    std::vector<int> travelTimes = shortestPath(s.residenceLoc);
+    for (const std::string& classCode : s.classes) {
+        int destVertex = classCodes[classCode];
+        int travelTime = -1;
+        if (travelTimes[destVertex] < INT_MAX) {
+            travelTime = travelTimes[destVertex];
+        }
+        output += classCode + ": " + std::to_string(travelTime) + "\n";
+    }
+    return output;
+}
+
+int CampusCompass::printStudentZone(int &UFID) {
+    const Student& s = students.at(UFID);
+    std::vector<int> travelTimes = shortestPath(s.residenceLoc);
+    std::set<int> accessible;
+    for (const std::string& classCode : s.classes) {
+        int destVertex = classCodes[classCode];
+        if (travelTimes[destVertex] < INT_MAX) {
+            accessible.insert(destVertex);
+        }
+    }
+    std::set<int> pathVertices(accessible);
+    std::vector<int> pathTrace = shortestVertices(s.residenceLoc);
+    for (int vertex: accessible) {
+        int curr = pathTrace[vertex];
+        while (pathTrace[curr] != -1) {
+            pathVertices.insert(curr);
+            curr = pathTrace[curr];
+        }
+    }
+    std::vector<int>parent(vertexCount);
+    for (int i = 0; i<vertexCount; i++) {
+        parent[i] = i;
+    }
+    std::vector<std::vector<int>> draftMST;
+    for (std::vector<int> connection : connections) {
+        if (pathVertices.find(connection[0]) != pathVertices.end() &&
+            pathVertices.find(connection[1]) != pathVertices.end() &&
+            connection[3] == 1) {
+                draftMST.push_back(connection);
+        }
+    }
+    std::sort(draftMST.begin(), draftMST.end(), [](const std::vector<int>& a, const std::vector<int>& b) {
+        return a[2] < b[2];
+    });
+    std::vector<std::vector<int>> MST;
+    int zoneSum = 0;
+    for (std::vector<int> edge: draftMST) {
+        if (find(edge[0], parent)!=find(edge[1], parent)) {}
+            MST.push_back(edge);
+            zoneSum+=edge[2];
+
+
+
+    }
+
+
+    return zoneSum;
+}
+
+std::vector<int> CampusCompass::shortestPath(int source) {
+    std::vector<std::vector<int>> adjacencyMatrix = createAdjacencyMatrix();
+    std::set<int> S;
+    std::set<int> VS;
+    std::vector<int> d(vertexCount,INT_MAX);
+    std::vector<int> p(vertexCount,-1);
+    S.insert(source);
+    d[source] = 0;
+    for (int i = 1; i < vertexCount; i++) {
+        if (i!=source) {
+            VS.insert(i);
+        }
+    }
+    for (int vertex: VS) {
+        if (adjacencyMatrix[source][vertex] >0) {
+            d[vertex] = adjacencyMatrix[source][vertex];
+            p[vertex] = source;
+        }else {
+            d[vertex] = INT_MAX;
+        }
+    }
+    while (!VS.empty()) {
+        int smallest = INT_MAX;
+        int u = 0;
+        for (int vertex: VS) {
+            if (d[vertex] < smallest) {
+                smallest = d[vertex];
+                u = vertex;
+            }
+        }
+        if (smallest == INT_MAX)
+            return d;
+
+        VS.erase(u);
+        S.insert(u);
+        for (int vertex: VS) {
+            if (adjacencyMatrix[vertex][u] >0 && d[u] < INT_MAX) {
+                if (d[u] + adjacencyMatrix[vertex][u] < d[vertex]) {
+                    d[vertex] = d[u] + adjacencyMatrix[vertex][u];
+                    p[vertex] = u;
+                }
+            }
+        }
+    }
+    return d;
+}
+
+
+std::vector<int> CampusCompass::shortestVertices(int source) {
+    std::vector<std::vector<int>> adjacencyMatrix = createAdjacencyMatrix();
+    std::set<int> S;
+    std::set<int> VS;
+    std::vector<int> d(vertexCount,INT_MAX);
+    std::vector<int> p(vertexCount,-1);
+    S.insert(source);
+    d[source] = 0;
+    for (int i = 1; i < vertexCount; i++) {
+        if (i!=source) {
+            VS.insert(i);
+        }
+    }
+    for (int vertex: VS) {
+        if (adjacencyMatrix[source][vertex] >0) {
+            d[vertex] = adjacencyMatrix[source][vertex];
+            p[vertex] = source;
+        }else {
+            d[vertex] = INT_MAX;
+        }
+    }
+    while (!VS.empty()) {
+        int smallest = INT_MAX;
+        int u = 0;
+        for (int vertex: VS) {
+            if (d[vertex] < smallest) {
+                smallest = d[vertex];
+                u = vertex;
+            }
+        }
+        if (smallest == INT_MAX)
+            return p;
+
+        VS.erase(u);
+        S.insert(u);
+        for (int vertex: VS) {
+            if (adjacencyMatrix[vertex][u] >0 && d[u] < INT_MAX) {
+                if (d[u] + adjacencyMatrix[vertex][u] < d[vertex]) {
+                    d[vertex] = d[u] + adjacencyMatrix[vertex][u];
+                    p[vertex] = u;
+                }
+            }
+        }
+    }
+    return p;
+}
+
+int CampusCompass::find(int i, std::vector<int>& parent) {
+    if (i == parent[i])
+        return i;
+
+    return find(parent[i], parent);
+}
+
+void CampusCompass::union_set(int i, int j, std::vector<int>& parent) {
+    parent[i] = parent[j];
 }
