@@ -89,6 +89,9 @@ bool CampusCompass::dropClass(int &UFID, std::string &classCode) {
     }
     Student& s = students.at(UFID);
     size_t success = s.classes.erase(classCode);
+    if (s.classes.size() == 0) {
+        students.erase(UFID);
+    }
     return success == 1;
 }
 
@@ -118,16 +121,20 @@ int CampusCompass::removeClass(std::string &classCode) {
         return 0;
     }
     int count = 0;
-    for (auto iter = students.begin(); iter != students.end(); ++iter) {
+    auto iter = students.begin();
+    while(iter != students.end()) {
         Student& s = iter->second;
         if (s.classes.find(classCode) == s.classes.end()) {
+            ++iter;
             continue;
         }
+        ++count;
         s.classes.erase(classCode);
         if (s.classes.size() == 0) {
-            students.erase(iter->first);
+            iter = students.erase(iter);
+        }else {
+            ++iter;
         }
-        ++count;
     }
     return count;
 }
@@ -145,7 +152,8 @@ void CampusCompass::toggleEdges(std::vector<std::pair<int, int> > &edges) {
 
 std::string CampusCompass::checkEdgeStatus(std::pair<int, int> &edge) {
     for(auto & connection : connections) {
-        if (edge.first == connection[0] && edge.second == connection[1]) {
+        if ((edge.first == connection[0] && edge.second == connection[1])
+            ||(edge.first == connection[1] && edge.second == connection[0])) {
             if (connection[3] == 0) {
                 return "closed";
             }
@@ -213,7 +221,7 @@ std::string CampusCompass::printShortestEdges(int &UFID) {
 
 std::string CampusCompass::printStudentZone(int &UFID) {
     const Student& s = students.at(UFID);
-    std::string output = "Student Zone Cost for: " + s.name;
+
     std::vector<int> travelTimes = shortestPath(s.residenceLoc);
     std::set<int> accessible;
     for (const std::string& classCode : s.classes) {
@@ -226,8 +234,11 @@ std::string CampusCompass::printStudentZone(int &UFID) {
     std::vector<int> pathTrace = shortestVertices(s.residenceLoc);
     for (int vertex: accessible) {
         int curr = pathTrace[vertex];
-        while (pathTrace[curr] != -1) {
+        while (curr != -1) {
             pathVertices.insert(curr);
+            if (curr == s.residenceLoc) {
+                break;
+            }
             curr = pathTrace[curr];
         }
     }
@@ -249,16 +260,17 @@ std::string CampusCompass::printStudentZone(int &UFID) {
     std::vector<std::vector<int>> MST;
     int zoneSum = 0;
     for (std::vector<int> edge: draftMST) {
-        if (find(edge[0], parent)!=find(edge[1], parent)) {}
+        if (find(edge[0], parent)!=find(edge[1], parent)) {
             MST.push_back(edge);
             zoneSum+=edge[2];
-
-
+            union_set(edge[0], edge[1], parent);
+        }
 
     }
 
 
-    return output + " " + std::to_string(zoneSum);
+    std::string output = "Student Zone Cost For " + s.name + ": ";
+    return output + std::to_string(zoneSum);
 }
 
 std::vector<int> CampusCompass::shortestPath(int source) {
@@ -364,5 +376,5 @@ int CampusCompass::find(int i, std::vector<int>& parent) {
 }
 
 void CampusCompass::union_set(int i, int j, std::vector<int>& parent) {
-    parent[i] = parent[j];
+    parent[find(i, parent)] = find(j, parent);
 }

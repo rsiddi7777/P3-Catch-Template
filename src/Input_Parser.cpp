@@ -74,7 +74,8 @@ std::string Input_Parser::dropClass(std::string command) {
     std::string UFID;
     std::string classCode;
     ss >> UFID >> classCode;
-    if (!validateClass(classCode) || !validateName(UFID))
+
+    if (!validateClass(classCode) || !validateID(UFID))
         return "unsuccessful";
 
     int ID = std::stoi(UFID);

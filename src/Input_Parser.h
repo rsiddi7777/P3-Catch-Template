@@ -42,7 +42,7 @@ public:
         {"dropClass", [this] (std::string command) {return dropClass(std::move(command));}},
         {"replaceClass", [this] (std::string command) {return replaceClass(std::move(command));}},
         {"removeClass", [this] (std::string command) {return removeClass(std::move(command));}},
-        {"toggleEdgeClosure", [this] (std::string command) {return toggleEdgeClosure(std::move(command));}},
+        {"toggleEdgesClosure", [this] (std::string command) {return toggleEdgeClosure(std::move(command));}},
         {"checkEdgeStatus", [this] (std::string command) {return checkEdgeStatus(std::move(command));}},
         {"isConnected", [this] (std::string command) {return isConnected(std::move(command));}},
         {"printShortestEdges", [this] (std::string command) {return printShortestEdges(std::move(command));}},
