@@ -207,11 +207,13 @@ std::string CampusCompass::printShortestEdges(int &UFID) {
         }
         output += classCode + ": " + std::to_string(travelTime) + "\n";
     }
+    output.pop_back();
     return output;
 }
 
-int CampusCompass::printStudentZone(int &UFID) {
+std::string CampusCompass::printStudentZone(int &UFID) {
     const Student& s = students.at(UFID);
+    std::string output = "Student Zone Cost for: " + s.name;
     std::vector<int> travelTimes = shortestPath(s.residenceLoc);
     std::set<int> accessible;
     for (const std::string& classCode : s.classes) {
@@ -256,7 +258,7 @@ int CampusCompass::printStudentZone(int &UFID) {
     }
 
 
-    return zoneSum;
+    return output + " " + std::to_string(zoneSum);
 }
 
 std::vector<int> CampusCompass::shortestPath(int source) {

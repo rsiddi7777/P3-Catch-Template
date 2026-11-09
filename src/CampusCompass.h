@@ -32,6 +32,14 @@ private:
 
     std::vector<int> shortestPath(int source);
     std::vector<int> shortestVertices(int source);
+
+    std::vector<std::vector<int>> createAdjacencyMatrix();
+public:
+    // Think about what helper functions you will need in the algorithm
+    CampusCompass(); // constructor
+    bool ParseCSV(const std::string &edges_filepath, const std::string &classes_filepath);
+    bool ParseCommand(const std::string &command);
+
     bool insertStudent(std::string& name, int& UFID, int& residenceLoc, std::set<std::string>& classes);
     bool removeStudent(int UFID);
     bool dropClass(int& UFID, std::string& classCode);
@@ -41,11 +49,5 @@ private:
     std::string checkEdgeStatus(std::pair<int,int>& edge);
     bool isConnected(std::pair<int,int>& locations);
     std::string printShortestEdges(int& UFID);
-    int printStudentZone(int& UFID);
-    std::vector<std::vector<int>> createAdjacencyMatrix();
-public:
-    // Think about what helper functions you will need in the algorithm
-    CampusCompass(); // constructor
-    bool ParseCSV(const std::string &edges_filepath, const std::string &classes_filepath);
-    bool ParseCommand(const std::string &command);
+    std::string printStudentZone(int& UFID);
 };
