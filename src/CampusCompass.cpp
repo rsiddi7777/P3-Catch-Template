@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <queue>
+#include <climits>
 
 CampusCompass::CampusCompass() {
     connections.clear();
