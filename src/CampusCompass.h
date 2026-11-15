@@ -24,7 +24,7 @@ class CampusCompass {
 private:
     std::vector<std::vector<int>> connections;
     std::map<std::string, int> classCodes;
-    std::unordered_map<int, Student> students;
+    std::map<int, Student> students;
     int vertexCount;
 
     int find(int i, std::vector<int>& parent);
