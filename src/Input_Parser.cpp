@@ -90,7 +90,7 @@ std::string Input_Parser::replaceClass(std::string command) {
     std::string classCode1;
     std::string classCode2;
     ss >> UFID >> classCode1 >> classCode2;
-    if (!validateClass(classCode2) || !validateClass(classCode1) || !validateName(UFID))
+    if (!validateClass(classCode2) || !validateClass(classCode1) || !validateID(UFID))
         return "unsuccessful";
     int ID = std::stoi(UFID);
     if (graph_->replaceClass(ID, classCode1, classCode2))
